@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:tokokita/bloc/registrasi_bloc.dart';
+import 'package:tokokita/widget/success_dialog.dart';
+import 'package:tokokita/widget/warning_dialog.dart';
 
 class RegistrasiPage extends StatefulWidget {
   const RegistrasiPage({Key? key}) : super(key: key);
@@ -124,35 +127,45 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
 
   // Membuat Tombol Registrasi
   Widget _buttonRegistrasi() {
-    return _isLoading
-        ? const CircularProgressIndicator() // Menampilkan loading ketika sedang diproses
-        : ElevatedButton(
-            child: const Text("Registrasi"),
-            onPressed: () {
-              var validate = _formKey.currentState!.validate();
-              if (validate) {
-                _register();
-              }
-            },
-          );
+    return ElevatedButton(
+        child: const Text("Registrasi"),
+        onPressed: () {
+          var validate = _formKey.currentState!.validate();
+          if (validate) {
+            if (!_isLoading) _submit();
+          }
+        });
   }
 
-  // Fungsi untuk melakukan registrasi
-  void _register() async {
+  void _submit() {
+    _formKey.currentState!.save();
     setState(() {
       _isLoading = true;
     });
-
-    // Simulasi delay proses registrasi (misalnya dari API)
-    await Future.delayed(const Duration(seconds: 2));
-
+    RegistrasiBloc.registrasi(
+            nama: _namaTextboxController.text,
+            email: _emailTextboxController.text,
+            password: _passwordTextboxController.text)
+        .then((value) {
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => SuccessDialog(
+                description: "Registrasi berhasil, silahkan login",
+                okClick: () {
+                  Navigator.pop(context);
+                },
+              ));
+    }, onError: (error) {
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => const WarningDialog(
+                description: "Registrasi gagal, silahkan coba lagi",
+              ));
+    });
     setState(() {
       _isLoading = false;
     });
-
-    // Setelah registrasi sukses, lakukan tindakan, misalnya pindah halaman
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Registrasi Berhasil')),
-    );
   }
 }

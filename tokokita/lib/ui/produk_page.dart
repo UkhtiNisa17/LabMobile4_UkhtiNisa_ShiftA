@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:tokokita/bloc/logout_bloc.dart';
+import 'package:tokokita/bloc/produk_bloc.dart';
 import 'package:tokokita/model/produk.dart';
+import 'package:tokokita/ui/login_page.dart';
 import 'package:tokokita/ui/produk_detail.dart';
 import 'package:tokokita/ui/produk_form.dart';
 
@@ -11,45 +14,19 @@ class ProdukPage extends StatefulWidget {
 }
 
 class _ProdukPageState extends State<ProdukPage> {
-  List<Produk> produkList = [
-    Produk(
-        id: 1, kodeProduk: 'A001', namaProduk: 'Kamera', hargaProduk: 5000000),
-    Produk(
-        id: 2, kodeProduk: 'A002', namaProduk: 'Kulkas', hargaProduk: 2500000),
-    Produk(
-        id: 3,
-        kodeProduk: 'A003',
-        namaProduk: 'Mesin Cuci',
-        hargaProduk: 2000000),
-  ];
-
-  // Fungsi untuk menambahkan produk baru ke dalam list
-  void addProduk(Produk produkBaru) {
-    setState(() {
-      produkList.add(produkBaru);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('List Produk Nisa'),
+        title: const Text('List Produk'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 20.0),
             child: GestureDetector(
               child: const Icon(Icons.add, size: 26.0),
               onTap: () async {
-                // Navigasi ke ProdukForm untuk menambahkan produk
-                Produk? produkBaru = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProdukForm()),
-                );
-                // Jika produk baru ditambahkan, tambahkan ke dalam list
-                if (produkBaru != null) {
-                  addProduk(produkBaru);
-                }
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ProdukForm()));
               },
             ),
           ),
@@ -59,31 +36,57 @@ class _ProdukPageState extends State<ProdukPage> {
         child: ListView(
           children: [
             ListTile(
-              title: const Text('Logout'),
+              title: const Text('Logout '),
               trailing: const Icon(Icons.logout),
-              onTap: () {
-                // Tambahkan logika logout di sini
+              onTap: () async {
+                await LogoutBloc.logout().then((value) => {
+                      Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (context) => const LoginPage()),
+                          (route) => false)
+                    });
               },
-            )
+            ),
           ],
         ),
       ),
-      body: ListView.builder(
-        itemCount: produkList.length,
-        itemBuilder: (context, index) {
-          return Column(
-            children: [
-              ItemProduk(produk: produkList[index]),
-              const Divider(), // Divider untuk memberikan ruang antar produk
-            ],
-          );
+      body: FutureBuilder<List>(
+        future: ProdukBloc.getProduks(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            print(snapshot.error);
+          }
+          return snapshot.hasData
+              ? ListProduk(
+                  list: snapshot.data,
+                )
+              : const Center(
+                  child: CircularProgressIndicator(),
+                );
         },
       ),
     );
   }
 }
 
-// Widget untuk menampilkan item produk
+class ListProduk extends StatelessWidget {
+  final List? list;
+
+  const ListProduk({Key? key, this.list}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: list == null ? 0 : list!.length,
+      itemBuilder: (context, i) {
+        return ItemProduk(
+          produk: list![i],
+        );
+      },
+    );
+  }
+}
+
 class ItemProduk extends StatelessWidget {
   final Produk produk;
 
@@ -93,19 +96,19 @@ class ItemProduk extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigasi ke halaman detail produk
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProdukDetail(produk: produk),
+            builder: (context) => ProdukDetail(
+              produk: produk,
+            ),
           ),
         );
       },
       child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         child: ListTile(
           title: Text(produk.namaProduk!),
-          subtitle: Text("Rp. ${produk.hargaProduk.toString()}"),
+          subtitle: Text(produk.hargaProduk.toString()),
         ),
       ),
     );
