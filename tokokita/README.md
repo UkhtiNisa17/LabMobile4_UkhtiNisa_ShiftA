@@ -1,8 +1,8 @@
 ## SCREENSHOOT PERTEMUAN 4
-![lampiran](login_tokokita)
-![lampiran](List_produk)
-![lampiran](Registrasi.tokokita)
-![lampiran](detail_produk)
-![lampiran](tambah_produk)
-![lampiran](ubah_produk)
+![lampiran](login_tokokita.png)
+![lampiran](List_produk.png)
+![lampiran](Registrasi.tokokita.png)
+![lampiran](detail_produk.png)
+![lampiran](tambah_produk.png)
+![lampiran](ubah_produk.png)
 
